@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package augur;
+
+option go_package = "github.com/mnorrsken/augur/proto";
+
+// NodeFeatures describes the numeric feature vector for a single node.
+message NodeFeatures {
+  string node_name = 1;
+  double cpu_capacity = 2;
+  double cpu_available = 3;
+  double memory_capacity = 4;
+  double memory_available = 5;
+  double gpu_count = 6;
+  double pod_count = 7;
+  double pod_capacity = 8;
+  double cost_per_hour = 9;
+  double zone = 10;
+}
+
+// ScoreRequest is sent from the Go extender to the Python RL agent.
+message ScoreRequest {
+  string pod_name = 1;
+  string namespace = 2;
+  string intent = 3;
+  repeated NodeFeatures nodes = 4;
+}
+
+// NodeScore pairs a node name with the agent's predicted score.
+message NodeScore {
+  string node_name = 1;
+  float score = 2;
+}
+
+// ScoreResponse returns per-node scores from the RL agent.
+message ScoreResponse {
+  repeated NodeScore node_scores = 1;
+}
+
+// AugurAgent is the gRPC service exposed by the Python RL agent.
+service AugurAgent {
+  // Score takes cluster state and returns per-node placement scores.
+  rpc Score(ScoreRequest) returns (ScoreResponse);
+}

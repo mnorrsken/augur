@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: augur-agent
+  namespace: augur
+  labels:
+    app: augur-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: augur-agent
+  template:
+    metadata:
+      labels:
+        app: augur-agent
+    spec:
+      containers:
+        - name: agent
+          image: augur-agent:latest
+          ports:
+            - containerPort: 50051
+              name: grpc
+          args:
+            - "--port=50051"
+            - "--model-path=/models/augur_ppo"
+          volumeMounts:
+            - name: model-volume
+              mountPath: /models
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+      volumes:
+        - name: model-volume
+          emptyDir: {}
+          # TODO: replace with PVC or S3-backed volume for trained model persistence.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: augur-agent
+  namespace: augur
+spec:
+  selector:
+    app: augur-agent
+  ports:
+    - port: 50051
+      targetPort: grpc
+      protocol: TCP

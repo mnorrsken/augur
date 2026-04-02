@@ -1,0 +1,15 @@
+# Python RL agent image.
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY agent/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY agent/ .
+# Proto-generated stubs should be copied or generated at build time.
+# TODO: add proto generation step or copy pre-generated stubs.
+
+EXPOSE 50051
+ENTRYPOINT ["python", "serve.py"]

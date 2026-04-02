@@ -1,0 +1,7 @@
+stable-baselines3>=2.3.0
+gymnasium>=0.29.0
+grpcio>=1.62.0
+grpcio-tools>=1.62.0
+protobuf>=5.26.0
+prometheus-client>=0.20.0
+numpy>=1.26.0

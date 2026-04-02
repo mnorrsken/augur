@@ -27,6 +27,20 @@ go.work.sum
 # env file
 .env
 
+# Build artifacts
+bin/
+
+# Python
+__pycache__/
+*.pyc
+agent/checkpoints/
+agent/tb_logs/
+agent/models/
+*.egg-info/
+
+# Trained models
+models/
+
 # Editor/IDE
 # .idea/
 # .vscode/
