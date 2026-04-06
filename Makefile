@@ -1,4 +1,4 @@
-.PHONY: build proto proto-go proto-py docker-build docker-build-agent deploy train agent-serve test lint clean
+.PHONY: build proto proto-go proto-py docker-build docker-build-agent deploy train agent-serve test lint fmt vet run clean
 
 AGENT_IMAGE := augur-agent:latest
 # Pass --gpus all when the Docker NVIDIA runtime is available, otherwise CPU-only.
@@ -7,6 +7,18 @@ GPU_FLAG := $(shell docker run --rm --gpus all hello-world >/dev/null 2>&1 && ec
 # Go build
 build:
 	go build -o bin/augur-extender ./cmd/augur-extender
+
+# Format Go code
+fmt:
+	go fmt ./...
+
+# Vet Go code
+vet:
+	go vet ./...
+
+# Run the extender locally (requires AUGUR_AGENT_ADDR to be set)
+run: build
+	./bin/augur-extender
 
 # Generate protobuf stubs (Go + Python).
 proto: proto-go proto-py

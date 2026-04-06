@@ -24,6 +24,15 @@ type PlacementOutcome struct {
 
 	// CostPerHour is the effective cost of the chosen node.
 	CostPerHour float64
+
+	// Intent is the workload's placement intent (e.g. "gpu-intensive").
+	Intent string
+
+	// NodeHasGPU indicates whether the chosen node has GPUs.
+	NodeHasGPU bool
+
+	// SameZone indicates whether the node matches the workload's preferred zone.
+	SameZone bool
 }
 
 // Reward computes a scalar reward signal from a placement outcome.
@@ -32,8 +41,7 @@ type PlacementOutcome struct {
 //   - Balanced resource utilization (not too high, not too low)
 //   - No evictions
 //   - Cost efficiency
-//
-// TODO: tune weights and non-linear transforms based on real cluster data.
+//   - Intent-aware placement
 func Reward(outcome PlacementOutcome) float64 {
 	reward := 0.0
 
@@ -54,7 +62,33 @@ func Reward(outcome PlacementOutcome) float64 {
 	// Penalize high cost.
 	reward -= outcome.CostPerHour * 0.5
 
-	// TODO: add intent-match bonus, zone-preference bonus.
+	// Intent-match bonus: reward placing intent-specific workloads on appropriate nodes.
+	reward += intentBonus(outcome)
 
 	return reward
+}
+
+// intentBonus returns a bonus (or penalty) based on how well the placement
+// matches the workload's declared intent.
+func intentBonus(o PlacementOutcome) float64 {
+	switch o.Intent {
+	case "gpu-intensive":
+		if o.NodeHasGPU {
+			return 3.0
+		}
+		return -3.0
+	case "low-latency":
+		if o.SameZone {
+			return 2.0
+		}
+		return -1.0
+	case "cost-sensitive":
+		// Extra reward for cheap nodes, on top of the general cost penalty.
+		if o.CostPerHour < 1.0 {
+			return 2.0
+		}
+		return 0.0
+	default:
+		return 0.0
+	}
 }
